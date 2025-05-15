@@ -1,0 +1,20 @@
+# Archivos de credenciales y configuración local
+.env
+.env.save
+.secrets
+*.json
+
+# Archivos de R y RStudio
+.Rhistory
+.RData
+*.Rproj
+.Rproj.user/
+
+# Ignorar carpetas específicas de datos (manteniendo .gitkeep)
+# Datos en crudo
+/data/raw/*
+!/data/raw/.gitkeep
+
+# Alertas
+/data/alertas/*
+!/data/alertas/.gitkeep
