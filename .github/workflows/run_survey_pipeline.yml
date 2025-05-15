@@ -26,14 +26,22 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev libgit2-dev
+          sudo apt-get install -y \
+            libcurl4-openssl-dev \
+            libssl-dev \
+            libxml2-dev \
+            libgit2-dev \
+            libfontconfig1-dev \
+            libfreetype6-dev
 
-      # 4. Instalar paquetes de R y ejecutar el script maestro
+      # 4. Instalar paquetes R y ejecutar el script maestro
       - name: Install R dependencies and run the pipeline
         env:
+          SERVIDOR: ${{ secrets.SERVIDOR }}
           USERNAME: ${{ secrets.USERNAME }}
           PASSWORD: ${{ secrets.PASSWORD }}
           EMAIL: ${{ secrets.EMAIL }}
+          FORMID: ${{ secrets.FORMID }}
           GOOGLE_SHEETS_CREDENTIALS: ${{ secrets.GOOGLE_SHEETS_CREDENTIALS }}
         run: |
           Rscript -e "if (!require('pacman')) install.packages('pacman', repos = 'https://cloud.r-project.org')"
@@ -56,6 +64,5 @@ jobs:
       # 5. Confirmación final
       - name: Confirm success
         run: echo "✅ Pipeline ejecutado correctamente."
-
 
 
