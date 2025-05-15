@@ -13,18 +13,21 @@ rm(list = ls())  # Limpia el entorno
 # Instalar y cargar paquetes necesarios
 if (!require("pacman")) install.packages("pacman")
 library(pacman)
-p_load(tidyverse, 
-       httr, # import json
-       jsonlite, # json to data frame
-       googledrive, # Gestionar google drive desde R.
-       writexl, # Write xlsx
-       haven,  # write/load SPSS y DTA
-       stringr, # Reemplazar tildes y ñ
-       labelled, # Aplicar labels to factor
-       lubridate,
-       gtsummary,
-       googlesheets4,
-       dotenv)
+p_load(
+  dplyr,
+  tidyr,
+  httr,
+  jsonlite,
+  googledrive,
+  googlesheets4,
+  writexl,
+  haven,
+  stringr,
+  labelled,
+  lubridate,
+  gtsummary,
+  dotenv
+)
 
 # Configurar el directorio base del proyecto
 project_path <- getwd()  # Ruta del proyecto en GitHub Actions
