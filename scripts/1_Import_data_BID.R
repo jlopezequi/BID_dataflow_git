@@ -104,6 +104,13 @@ df<- df %>%
     !is.na(sexo),sexo,gender
   ))
 
+
+df <- df %>%
+  mutate(
+    fecha_limpia = parse_date_time(endtime, orders = "b d, Y I:M:S p")
+  ) %>%
+  filter(fecha_limpia >= ymd("2025-05-14"))
+
 # Guardado en Diferentes Formato ---------------------------------------------------------------
 dir.create("data/raw", recursive = TRUE, showWarnings = FALSE)
 # Asegurarse de que los nombres de columnas sean válidos

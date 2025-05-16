@@ -26,7 +26,8 @@ p_load(
   labelled,
   lubridate,
   gtsummary,
-  dotenv
+  dotenv,
+  lubridate
 )
 
 # Configurar el directorio base del proyecto
