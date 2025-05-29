@@ -1,59 +1,3 @@
-# Unificar variables
-
-df <- df %>%
-  mutate(
-    # Reemplazar strings vacíos en columnas "pull" por NA
-    across(contains("pull"), ~if_else(str_squish(.) == "", NA_character_, .)),
-    
-    # Limpiar nombres
-    name1 = na_if(str_squish(student_name1), ""),
-    name2 = na_if(str_squish(student_name2), ""),
-    name3 = na_if(str_squish(student_name3), ""),
-    name4 = na_if(str_squish(student_name4), ""),
-    
-    # Convertir "9999" en NA explícitamente
-    name2 = if_else(name2 == "9999", NA_character_, name2),
-    name4 = if_else(name4 == "9999", NA_character_, name4),
-    
-    # Construcción condicional del nombre completo
-    nombre_concatenado = case_when(
-      is.na(name2) & !is.na(name3) & !is.na(name4) ~ str_c(name1, name3, name4, sep = " "),
-      is.na(name2) & !is.na(name3) & is.na(name4) ~ str_c(name1, name3, sep = " "),
-      is.na(name2) & is.na(name3) & !is.na(name4) ~ str_c(name1, name4, sep = " "),
-      is.na(name2) & is.na(name3) & is.na(name4) ~ name1,
-      !is.na(name2) & !is.na(name3) & is.na(name4) ~ str_c(name1, name2, name3, sep = " "),
-      !is.na(name2) & is.na(name3) & !is.na(name4) ~ str_c(name1, name2, name4, sep = " "),
-      !is.na(name2) & is.na(name3) & is.na(name4) ~ str_c(name1, name2, sep = " "),
-      TRUE ~ str_c(name1, name2, name3, name4, sep = " ")
-    ),
-    
-    # Limpiar espacios finales
-    nombre_concatenado = str_squish(nombre_concatenado),
-    
-    # Consolidar variables de juegos
-    games_1_1 = coalesce(games_1_1_1, games_1_1_2),
-    games_1_2 = coalesce(games_1_2_1, games_1_2_2),
-    games_1_3 = coalesce(games_1_3_1, games_1_3_2),
-    games_1_4 = coalesce(games_1_4_1, games_1_4_2),
-    games_1_5 = coalesce(games_1_5_1, games_1_5_2),
-    games_1_6 = coalesce(games_1_6_1, games_1_6_2),
-    games_2_1 = coalesce(games_2_1_1, games_2_1_2),
-    games_2_2 = coalesce(games_2_2_1, games_2_2_2),
-    games_2_3 = coalesce(games_2_3_1, games_2_3_2),
-    games_2_4 = coalesce(games_2_4_1, games_2_4_2),
-    games_2_5 = coalesce(games_2_5_1, games_2_5_2),
-    games_2_6 = coalesce(games_2_6_1, games_2_6_2),
-    edad_final = coalesce(edad_pull,edad_corr,student_age),
-    gender_final = coalesce(genero_pull,gender),
-    gender_final = case_when(
-      gender_final == "F" ~ "2",
-      gender_final == "M" ~ "1",
-      TRUE ~ gender_final),
-    
-    # Nombre final priorizando nombre_pull sobre el concatenado
-    name_final = str_to_upper(coalesce(nombre_pull, nombre_concatenado)),
-    name_final = if_else(str_squish(name_final) == "", NA_character_, name_final)
-  )
 
 
 #### Alertas ####
@@ -165,7 +109,7 @@ alertas <- alertas %>%
 vars <- c(
   "assent",
   "name_final", "student_id_final", "school_final", "sede_final", "curso_final",
-  "jornada_final", "codigo_compuesto", "edad_final", "gender_final", "student_country", "student_city", 
+  "jornada_final", "codigo_compuesto", "age_final", "gender_final", "student_country", 
   "student_mother_country", "student_father_country",
   "perspective_taking", "friends_problems", "understand_others", "understand_feelings",
   "talking_interrupt", "impulsive_do_now", "impulsive_do", "impulsive_talk",
@@ -186,16 +130,122 @@ vars <- c(
 
 # Crear las variables dummy de missing
 alertas <- alertas %>%
-  mutate(across(all_of(vars), ~ if_else(is.na(.x), 1, 0), .names = "m_{.col}"),
-         m_mate_1_name = if_else(is.na(mate_1_name) & as.numeric(ubi_3) == 1,1,0),
-         m_mate_1_lastname = if_else(is.na(mate_1_lastname) & as.numeric(ubi_3) == 1,1,0),
-         m_mate_2_name = if_else(is.na(mate_2_name) & as.numeric(ubi_4) == 1,1,0),
-         m_mate_2_lastname = if_else(is.na(mate_2_lastname) & as.numeric(ubi_4) == 1,1,0),
-         m_mate_3_name = if_else(is.na(mate_3_name) & as.numeric(ubi_5) == 1,1,0),
-         m_mate_3_lastname = if_else(is.na(mate_3_lastname) & as.numeric(ubi_5) == 1,1,0),
-         m_mate_4_name = if_else(is.na(mate_4_name) & as.numeric(ubi_6) == 1,1,0),
-         m_mate_4_lastname = if_else(is.na(mate_4_lastname) & as.numeric(ubi_6) == 1,1,0))
+  mutate(across(all_of(vars), ~ if_else(is.na(.x), 1, 0), .names = "m_{.col}"))
 
+# Missings con condiciones de relevancia
+
+alertas <- alertas %>%
+  mutate(
+    m_student_country_o = if_else(
+      is.na(student_country_o) & as.numeric(student_country) == 88,1,0
+    ),
+    m_student_mother_country_o = if_else(
+      is.na(student_mother_country_o) & as.numeric(student_mother_country) == 88,1,0
+    ),
+    m_student_father_country_o = if_else(
+      is.na(student_father_country_o) & as.numeric(student_father_country) == 88,1,0
+    ),
+    m_student_mother_age = if_else(
+      is.na(student_mother_age) & as.numeric(student_mother_country) != 66,1,0
+    ),
+    m_student_father_age = if_else(
+      is.na(student_father_age) & as.numeric(student_father_country) != 66,1,0
+    ),
+    m_friend_1_name = if_else(
+      is.na(friend_1_name) & as.numeric(friend_1_select) == 66,1,0
+    ),
+    m_friend_1_lastname = if_else(
+      is.na(friend_1_lastname) & as.numeric(friend_1_select) == 66,1,0
+    ),
+    m_friend_2_name = if_else(
+      is.na(friend_2_name) & as.numeric(friend_2_select) == 66,1,0
+    ),
+    m_friend_2_lastname = if_else(
+      is.na(friend_2_lastname) & as.numeric(friend_2_select) == 66,1,0
+    ),
+    m_friend_3_name = if_else(
+      is.na(friend_3_name) & as.numeric(friend_3_select) == 66,1,0
+    ),
+    m_friend_3_lastname = if_else(
+      is.na(friend_3_lastname) & as.numeric(friend_3_select) == 66,1,0
+    ),
+    m_emotional_1_name = if_else(
+      is.na(emotional_1_name) & as.numeric(emotional_1_select) == 66,1,0
+    ),
+    m_emotional_1_lastname = if_else(
+      is.na(emotional_1_lastname) & as.numeric(emotional_1_select) == 66,1,0
+    ),
+    m_emotional_2_name = if_else(
+      is.na(emotional_2_name) & as.numeric(emotional_2_select) == 66,1,0
+    ),
+    m_emotional_2_lastname = if_else(
+      is.na(emotional_2_lastname) & as.numeric(emotional_2_select) == 66,1,0
+    ),
+    m_emotional_3_name = if_else(
+      is.na(emotional_3_name) & as.numeric(emotional_3_select) == 66,1,0
+    ),
+    m_emotional_3_lastname = if_else(
+      is.na(emotional_3_lastname) & as.numeric(emotional_3_select) == 66,1,0
+    ),
+    m_academic_1_name = if_else(
+      is.na(academic_1_name) & as.numeric(academic_1_select) == 66,1,0
+    ),
+    m_academic_1_lastname = if_else(
+      is.na(academic_1_lastname) & as.numeric(academic_1_select) == 66,1,0
+    ),
+    m_academic_2_name = if_else(
+      is.na(academic_2_name) & as.numeric(academic_2_select) == 66,1,0
+    ),
+    m_academic_2_lastname = if_else(
+      is.na(academic_2_lastname) & as.numeric(academic_2_select) == 66,1,0
+    ),
+    m_academic_3_name = if_else(
+      is.na(academic_3_name) & as.numeric(academic_3_select) == 66,1,0
+    ),
+    m_academic_3_lastname = if_else(
+      is.na(academic_3_lastname) & as.numeric(academic_3_select) == 66,1,0
+    ),
+    m_games_1_2 = if_else(
+      is.na(games_1_2) & (as.numeric(games_1_1_1) != 0 | as.numeric(games_1_1_2)!= 0),1,0
+      ),
+    m_games_3_a = if_else(is.na(games_3_a) & as.numeric(random) == 1,1,0
+                          ),
+    m_games_3_b = if_else(is.na(games_3_b) & as.numeric(random) == 2,1,0
+    ),
+    m_mate_1_name = if_else(is.na(mate_1_name) & as.numeric(mate_1_select) == 66,1,0
+                            ),
+    m_mate_1_lastname = if_else(is.na(mate_1_lastname) & as.numeric(mate_1_select) == 66,1,0
+    ),
+    m_mate_2_name = if_else(is.na(mate_2_name) & as.numeric(mate_2_select) == 66,1,0
+    ),
+    m_mate_2_lastname = if_else(is.na(mate_2_lastname) & as.numeric(mate_2_select) == 66,1,0
+    ),
+    m_mate_3_name = if_else(is.na(mate_3_name) & as.numeric(mate_3_select) == 66,1,0
+    ),
+    m_mate_3_lastname = if_else(is.na(mate_3_lastname) & as.numeric(mate_3_select) == 66,1,0
+    ),
+    m_mate_4_name = if_else(is.na(mate_4_name) & as.numeric(mate_4_select) == 66,1,0
+    ),
+    m_mate_4_lastname = if_else(is.na(mate_4_lastname) & as.numeric(mate_4_select) == 66,1,0
+    ),
+    m_mate_1_name_tec = if_else(is.na(mate_1_name_tec) & as.numeric(mate_1_select_tec) == 66,1,0
+    ),
+    m_mate_1_lastname_tec = if_else(is.na(mate_1_lastname_tec) & as.numeric(mate_1_select_tec) == 66,1,0
+    ),
+    m_mate_2_name_tec = if_else(is.na(mate_2_name_tec) & as.numeric(mate_2_select_tec) == 66,1,0
+    ),
+    m_mate_2_lastname_tec = if_else(is.na(mate_2_lastname_tec) & as.numeric(mate_2_select_tec) == 66,1,0
+    ),
+    m_mate_3_name_tec = if_else(is.na(mate_3_name_tec) & as.numeric(mate_3_select_tec) == 66,1,0
+    ),
+    m_mate_3_lastname_tec = if_else(is.na(mate_3_lastname_tec) & as.numeric(mate_3_select_tec) == 66,1,0
+    ),
+    m_mate_4_name_tec = if_else(is.na(mate_4_name_tec) & as.numeric(mate_4_select_tec) == 66,1,0
+    ),
+    m_mate_4_lastname_tec = if_else(is.na(mate_4_lastname_tec) & as.numeric(mate_4_select_tec) == 66,1,0
+    ),
+    m_feedback_dis = if_else(is.na(feedback_dis) & disc_pull == "SI",1,0))
+    
    
 ## Sumar total missings    
 
@@ -225,21 +275,16 @@ alertas <- alertas %>%
 
 ## DUPLICADOS ----
 
-caract_especi <- c("á" = "a", "é" = "e", "í" = "i", "ó" = "o", "ú" = "u",
-                   "Á" = "A", "É" = "E", "Í" = "I", "Ó" = "O", "Ú" = "U",
-                   "ñ" = "n", "Ñ" = "N")
-
-alertas <- alertas %>% 
-  mutate(
-    nombre =  str_squish(str_replace_all(toupper(student_name1), caract_especi)),
-    apellido1 = str_squish(str_replace_all(toupper(student_name3), caract_especi)),
-    apellido2 = str_squish(str_replace_all(toupper(student_name4), caract_especi))
-    )
-
+caract_especi_mayus <- c("Á" = "A", "É" = "E", "Í" = "I", "Ó" = "O", "Ú" = "U", "Ñ" = "N")
 
 alertas <- alertas %>%
-  mutate(duplicado = if_else(duplicated(select(., nombre, apellido1, apellido2,student_school,student_shift,student_fifth_l)) |
-                               duplicated(select(., nombre, apellido1, apellido2,student_school,student_shift,student_fifth_l), fromLast = TRUE),
+  mutate(
+    nombre = str_squish(str_replace_all(toupper(name_final), caract_especi_mayus))
+  )
+
+alertas <- alertas %>%
+  mutate(duplicado = if_else(duplicated(select(., nombre, school_final,sede_final,jornada_final,curso_final)) |
+                               duplicated(select(., nombre, school_final,sede_final,jornada_final,curso_final), fromLast = TRUE),
                              1, 0, missing = 0))
 
 ## Exceso de no sabe
@@ -247,16 +292,17 @@ alertas <- alertas %>%
 # Lista completa de variables que deben alertar si tienen el valor 99 "No sé"
 vars_99 <- c(
   # Variables iniciales
-  "perspective_taking", "academics_problems", "understand_others", "understand_feelings",
+  "perspective_taking", "friends_problems", "understand_others", "understand_feelings",
   "talking_interrupt", "impulsive_do_now", "impulsive_do", "impulsive_talk", "thinking_first",
   "hyperactive", "no_move_dif", "impulsive_decisions", "impulsive_responses", "empathy_injustice",
   "empathy_defense", "empathy_feelings", "empathy_sorry", "mates_make_fun", "mates_talk_behind",
   "mates_fight", "mates_fun_migrant", "mates_fun_indigena", "mates_nice", "mates_beat_migrant",
   "mates_beat_race", "mates_protect", "cohes_help", "cohes_close_knit", "cohes_trust",
-  "cohes_get_along", "cohes_values","empathy_good_hearth", "migrant_academics",
+  "cohes_get_along", "cohes_values","empathy_good_hearth", "migrant_friends",
   "disability_fiends", "race_play","migrant_smart", "migrant_equal", 
   "religion_respect", "migrant_aggressive","games_1_2", "games_2_2","student_country", 
-  "student_mother_country", "student_father_country", "gender"
+  "student_mother_country", "student_father_country", paste("friend",1:3,"select",sep = "_"),
+  paste("emotional",1:3,"select",sep = "_"), paste("academic",1:3,"select",sep = "_")
 )
 
 # Crear las variables ns_... con valor 1 si la variable es igual a 99
@@ -264,28 +310,6 @@ alertas <- alertas %>%
   mutate(across(
     all_of(vars_99),
     ~ if_else(as.numeric(.x) == 99, 1, 0),
-    .names = "ns_{.col}"
-  ))
-
-# Crear las variables ns_... con valor 1 si la variable es igual a 9999
-
-vars_9999 <- c(
-  "student_name2", "student_name4", "student_city",
-  "academic_1_name", "academic_1_lastname",
-  "academic_2_name", "academic_2_lastname",
-  "academic_3_name", "academic_3_lastname",
-  "emotional_1_name", "emotional_1_lastname",
-  "emotional_2_name", "emotional_2_lastname",
-  "emotional_3_name", "emotional_3_lastname",
-  "academic_1_name", "academic_1_lastname",
-  "academic_2_name", "academic_2_lastname",
-  "academic_3_name", "academic_3_lastname"
-)
-
-alertas <- alertas %>%
-  mutate(across(
-    all_of(vars_9999),
-    ~ if_else(as.character(.x) == "9999", 1, 0),
     .names = "ns_{.col}"
   ))
 
@@ -358,24 +382,14 @@ table(alertas$Exitos)
 
 # Género
 
-genero_labels <- c("Masculino" = 1, "Femenino" = 2, "Prefierre no responder" = 99)
-alertas$gender_str <- factor(alertas$gender, levels = c(1, 2,99), labels = names(genero_labels))
+genero_labels <- c("Masculino" = 1, "Femenino" = 2)
+alertas$gender_str <- factor(alertas$gender_final, levels = c(1, 2), labels = names(genero_labels))
 attr(alertas$gender_str, "label") <- "Género"
 
 # Colegio
 
-# Definir las etiquetas para los niveles de educación
-educ_labels <- c(
-  "El Tabora" = 1,
-  "Villa Amalia" = 2,
-  "Colegio Villamar" = 3,
-  "Liceo Agustín Nieto Caballero" = 4)
 
-# Convertir en factor
-alertas$student_school_str <- factor(alertas$student_school, levels = c(1:4), labels = names(educ_labels))
 
-# Asignar una etiqueta general a la variable
-attr(alertas$student_school_str, "label") <- "Colegio"
 
 
 # Definir las etiquetas para los niveles de nacionalidad

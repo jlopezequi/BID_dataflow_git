@@ -93,7 +93,9 @@ vars_needed <- c(
   "curso_corr",
   "jornada_corr",
   "edad_corr",
-  "disc_pull"
+  "disc_pull",
+  "colegio_str",
+  "sede_str"
 )
 
 
@@ -109,6 +111,63 @@ df <- df %>%
     fecha_limpia = parse_date_time(endtime, orders = "b d, Y I:M:S p")
   ) %>%
   filter(fecha_limpia >= ymd("2025-05-16"))
+
+# # Unificar variables
+
+df <- df %>%
+  mutate(
+    # Reemplazar strings vacíos en columnas "pull" por NA
+    across(contains("pull"), ~if_else(str_squish(.) == "", NA_character_, .)),
+    
+    # Limpiar nombres
+    name1 = na_if(str_squish(student_name1), ""),
+    name2 = na_if(str_squish(student_name2), ""),
+    name3 = na_if(str_squish(student_name3), ""),
+    name4 = na_if(str_squish(student_name4), ""),
+    
+    # Convertir "9999" en NA explícitamente
+    name2 = if_else(name2 == "9999", NA_character_, name2),
+    name4 = if_else(name4 == "9999", NA_character_, name4),
+    
+    # Construcción condicional del nombre completo
+    nombre_concatenado = case_when(
+      is.na(name2) & !is.na(name3) & !is.na(name4) ~ str_c(name1, name3, name4, sep = " "),
+      is.na(name2) & !is.na(name3) & is.na(name4) ~ str_c(name1, name3, sep = " "),
+      is.na(name2) & is.na(name3) & !is.na(name4) ~ str_c(name1, name4, sep = " "),
+      is.na(name2) & is.na(name3) & is.na(name4) ~ name1,
+      !is.na(name2) & !is.na(name3) & is.na(name4) ~ str_c(name1, name2, name3, sep = " "),
+      !is.na(name2) & is.na(name3) & !is.na(name4) ~ str_c(name1, name2, name4, sep = " "),
+      !is.na(name2) & is.na(name3) & is.na(name4) ~ str_c(name1, name2, sep = " "),
+      TRUE ~ str_c(name1, name2, name3, name4, sep = " ")
+    ),
+    
+    # Limpiar espacios finales
+    nombre_concatenado = str_squish(nombre_concatenado),
+    
+    # Consolidar variables de juegos
+    games_1_1 = coalesce(games_1_1_1, games_1_1_2),
+    games_1_2 = coalesce(games_1_2_1, games_1_2_2),
+    games_1_3 = coalesce(games_1_3_1, games_1_3_2),
+    games_1_4 = coalesce(games_1_4_1, games_1_4_2),
+    games_1_5 = coalesce(games_1_5_1, games_1_5_2),
+    games_1_6 = coalesce(games_1_6_1, games_1_6_2),
+    games_2_1 = coalesce(games_2_1_1, games_2_1_2),
+    games_2_2 = coalesce(games_2_2_1, games_2_2_2),
+    games_2_3 = coalesce(games_2_3_1, games_2_3_2),
+    games_2_4 = coalesce(games_2_4_1, games_2_4_2),
+    games_2_5 = coalesce(games_2_5_1, games_2_5_2),
+    games_2_6 = coalesce(games_2_6_1, games_2_6_2),
+    age_final = coalesce(edad_pull,edad_corr,student_age),
+    gender_final = coalesce(genero_pull,gender),
+    gender_final = case_when(
+      gender_final == "F" ~ "2",
+      gender_final == "M" ~ "1",
+      TRUE ~ gender_final),
+    
+    # Nombre final priorizando nombre_pull sobre el concatenado
+    name_final = str_to_upper(coalesce(nombre_pull, nombre_concatenado)),
+    name_final = if_else(str_squish(name_final) == "", NA_character_, name_final)
+  )
 
 # Guardado en Diferentes Formato ---------------------------------------------------------------
 dir.create("data/raw", recursive = TRUE, showWarnings = FALSE)
