@@ -43,12 +43,17 @@ df <- df %>%
     games_2_4 = coalesce(games_2_4_1, games_2_4_2),
     games_2_5 = coalesce(games_2_5_1, games_2_5_2),
     games_2_6 = coalesce(games_2_6_1, games_2_6_2),
+    edad_final = coalesce(edad_pull,edad_corr,student_age),
+    gender_final = coalesce(genero_pull,gender),
+    gender_final = case_when(
+      gender_final == "F" ~ "2",
+      gender_final == "M" ~ "1",
+      TRUE ~ gender_final),
     
     # Nombre final priorizando nombre_pull sobre el concatenado
     name_final = str_to_upper(coalesce(nombre_pull, nombre_concatenado)),
     name_final = if_else(str_squish(name_final) == "", NA_character_, name_final)
   )
-
 
 
 #### Alertas ####
@@ -158,30 +163,26 @@ alertas <- alertas %>%
 
 
 vars <- c(
-  "student_name1", "student_name2", "student_name3", "student_name4",
-  "student_school", "student_shift", "student_fifth_l", "student_birth",
-  "student_birth1", "student_birth2", "student_birth3", "student_age",
-  "student_country", "student_city", "student_mother_country", "student_father_country",
-  "perspective_taking", "academics_problems", "understand_others", "understand_feelings",
+  "assent",
+  "name_final", "student_id_final", "school_final", "sede_final", "curso_final",
+  "jornada_final", "codigo_compuesto", "edad_final", "gender_final", "student_country", "student_city", 
+  "student_mother_country", "student_father_country",
+  "perspective_taking", "friends_problems", "understand_others", "understand_feelings",
   "talking_interrupt", "impulsive_do_now", "impulsive_do", "impulsive_talk",
   "thinking_first", "hyperactive", "no_move_dif", "impulsive_decisions",
   "impulsive_responses", "empathy_injustice", "empathy_defense", "empathy_feelings",
-  "empathy_sorry", "empathy_good_hearth", "migrant_academics", "disability_fiends",
+  "empathy_sorry", "empathy_good_hearth", "migrant_friends", "disability_fiends",
   "race_play", "migrant_smart", "migrant_equal", "religion_respect", "migrant_aggressive",
   "mates_make_fun", "mates_talk_behind", "mates_fight", "mates_fun_migrant",
   "mates_fun_indigena", "mates_nice", "mates_beat_migrant", "mates_beat_race",
   "mates_protect", "mates_scare_you", "mates_fun_you", "mates_hit_you",
   "mates_out_scare_you", "mates_out_fun_you", "mates_out_hit_you",
-  "raven_ej1", "raven_ej2", "raven_ej3", paste0("raven_", 1:48),
-  "eyes_test_ej", paste0("eyes_test_", 1:36),
-  "academic_1_name", "academic_1_lastname", "academic_2_name", "academic_2_lastname",
-  "academic_3_name", "academic_3_lastname", "emotional_1_name", "emotional_1_lastname",
-  "emotional_2_name", "emotional_2_lastname", "emotional_3_name", "emotional_3_lastname",
-  "academic_1_name", "academic_1_lastname", "academic_2_name", "academic_2_lastname",
-  "academic_3_name", "academic_3_lastname",
+  "raven_ej1", "raven_ej2", paste0("raven_", c(1,4,9,13,19,21,26,28,31,44,45,47)),
+  "eyes_test_ej", paste0("eyes_test_", 1:36), paste("friend",1:3,"select",sep = "_"),
+  paste("emotional",1:3,"select",sep = "_"), paste("academic",1:3,"select",sep = "_"),
   "cohes_help", "cohes_close_knit", "cohes_trust", "cohes_get_along", "cohes_values",
-  paste0("games_1_", 1:6), paste0("games_2_", 1:6),
-  paste0("ubi_", 1:6),"assent","gender")
+  paste0("games_1_", c(1,3:6)), paste0("games_2_", c(1,3:6)), paste0("ubi_", 1:6),
+  paste0("ubi_", c(1,3:6),"_tec"))
 
 # Crear las variables dummy de missing
 alertas <- alertas %>%
