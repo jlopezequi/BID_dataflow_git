@@ -1,10 +1,10 @@
 name: Run Survey Data Pipeline
 
-#  Ejecución pausada temporalmente
-# on:
-#   schedule:
-#     - cron: "0 */2 * * *"  # Cada dos horas
-#   workflow_dispatch:
+
+ on:
+   schedule:
+     - cron: "0 */2 * * *"  # Cada dos horas
+   workflow_dispatch:
 
 jobs:
   run-scripts:
