@@ -1,10 +1,9 @@
 name: Run Survey Data Pipeline
 
-
- on:
-   schedule:
-     - cron: "0 */2 * * *"  # Cada dos horas
-   workflow_dispatch:
+on:
+  schedule:
+    - cron: "0 */2 * * *"  # Cada dos horas
+  workflow_dispatch:
 
 jobs:
   run-scripts:
@@ -66,3 +65,4 @@ jobs:
       # 5. Confirmación final
       - name: Confirm success
         run: echo "✅ Pipeline ejecutado correctamente."
+
