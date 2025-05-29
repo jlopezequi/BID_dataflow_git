@@ -57,52 +57,51 @@ repeat {
 
 
 vars_needed <- c(
-  "student_fifth_o",
+  "verificacion_estudiante",
+  "name_corr",
+  "colegio_corr",
+  "sede_corr",
+  "curso_corr",
+  "jornada_corr",
+  "edad_corr",
   "student_country_o",
+  "student_city",
   "student_mother_country_o",
   "student_father_country_o",
   "student_mother_age",
   "student_father_age",
+  "games_1_2_1",
+  "games_2_2_1",
+  "games_2_2_2",
+  "games_1_2_2",
   "games_3_a",
   "games_3_b",
-  "mate_1",
-  "mate_1_name",
-  "mate_1_lastname",
-  "mate_2",
-  "mate_2_name",
-  "mate_2_lastname",
-  "mate_3",
-  "mate_3_name",
-  "mate_3_lastname",
-  "mate_4",
-  "mate_4_name",
-  "mate_4_lastname",
-  "assent",
-  "gender","stamp_pers_1", "stamp_pers_2", "time_pers_sec",
-  "stamp_impul_1", "stamp_impul_2", "time_impul_sec",
-  "stamp_preo_1", "stamp_preo_2", "time_preo_sec",
-  "stamp_preju_1", "stamp_preju_2", "time_preju_sec",
-  "stamp_norms_1", "stamp_norms_2", "time_norms_sec",
-  "stamp_cohe_1", "stamp_cohe_2", "time_cohe_sec",
-  "stamp_raven_1", "stamp_raven_2", "time_raven_sec",
-  "stamp_ojos_1", "stamp_ojos_2", "time_ojos_sec",
-  "stamp_nomi_1", "stamp_nomi_2", "time_nomi_sec",
-  "stamp_stud_cohe_1", "stamp_stud_cohe_2", "time_stud_cohe_sec",
-  "stamp_games_1", "stamp_games_2", "time_games_sec",
-  "stamp_ubi_1", "stamp_ubi_2", "time_ubi_sec"
+  "mate_1_select",
+  "mate_2_select",
+  "mate_3_select",
+  "mate_4_select",
+  "mate_1_select_tec",
+  "mate_2_select_tec",
+  "mate_3_select_tec",
+  "mate_4_select_tec",
+  "feedback_dis",
+  paste("which_data",1:6,sep="_"),
+  "which_data",
+  "name_corr",
+  "colegio_corr",
+  "sede_corr",
+  "curso_corr",
+  "jornada_corr",
+  "edad_corr",
+  "disc_pull"
 )
+
 
 for (v in vars_needed) {
   if (!(v %in% names(df))) {
     df[[v]] <- rep(NA, nrow(df))
   }
 }
-
-
-df<- df %>%
-  mutate(gender = if_else(
-    !is.na(sexo),sexo,gender
-  ))
 
 
 df <- df %>%
