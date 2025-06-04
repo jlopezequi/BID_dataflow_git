@@ -1,4 +1,9 @@
+###### Correcciones
 
+# Eliminación duplicado 4/06/23
+
+df <- df %>%
+  filter(username != "myriam.duque" & student_id_final != "U5SC")
 
 #### Alertas ####
 
