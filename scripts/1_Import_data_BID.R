@@ -110,7 +110,7 @@ df <- df %>%
   mutate(
     fecha_limpia = parse_date_time(endtime, orders = "b d, Y I:M:S p")
   ) %>%
-  filter(fecha_limpia >= ymd("2025-05-16"))
+  filter(fecha_limpia >= ymd("2025-06-04"))
 
 # # Unificar variables
 
