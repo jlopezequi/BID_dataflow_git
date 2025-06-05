@@ -3,7 +3,7 @@
 # Eliminación duplicado 4/06/23
 
 df <- df %>%
-  filter(student_id_uuid != "80612")
+  filter(!(username == "myriam.duque" & student_id_uuid == "U5SC"))
 
 #### Alertas ####
 
