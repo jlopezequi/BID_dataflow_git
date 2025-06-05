@@ -38,3 +38,16 @@ tryCatch({
 })
 
 
+Sys.sleep(300)
+
+message("Exportando datos de alertas...")
+tryCatch({
+  sheet_write(df, ss = sheet_alertas, sheet = "raw_data")
+  message("Datos exportados correctamente.")
+}, error = function(e) {
+  stop("Error al exportar datos de alertas: ", e)
+})
+
+
+
+
