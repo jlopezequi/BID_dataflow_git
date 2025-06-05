@@ -3,7 +3,7 @@
 # Eliminación duplicado 4/06/23
 
 df <- df %>%
-  filter(!(username == "myriam.duque" & student_id_uuid == "U5SC"))
+  filter(!(username == "myriam.duque" & student_id_final == "U5SC"))
 
 #### Alertas ####
 
