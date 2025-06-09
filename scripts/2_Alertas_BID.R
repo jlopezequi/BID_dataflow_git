@@ -415,6 +415,95 @@ alertas$student_country_str <- factor(alertas$student_country, levels = c(1:4,88
 # Asignar una etiqueta general a la variable
 attr(alertas$student_country_str, "label") <- "Nacionalidad"
 
+## Levantar alertas de encuestadores
+
+### Alerta de rangos
+
+var_acuerdo <- c(
+  "empathy_good_hearth",
+  "migrant_friends",
+  "disability_fiends",
+  "race_play",
+  "migrant_smart",
+  "migrant_equal",
+  "religion_respect",
+  "migrant_aggressive"
+)
+
+alertas_rango <- alertas %>%
+  mutate(
+    # Dummies para respuestas == 1
+    across(
+      all_of(var_acuerdo),
+      ~ if_else(as.numeric(.) == 1, 1, 0),
+      .names = "range_1_{.col}"
+    ),
+    # Dummies para respuestas == 4
+    across(
+      all_of(var_acuerdo),
+      ~ if_else(as.numeric(.) == 4, 1, 0),
+      .names = "range_4_{.col}"
+    )
+  ) %>%
+  # Sumar por fila
+  mutate(
+    total_rango_1_fila = rowSums(across(starts_with("range_1_")), na.rm = TRUE),
+    total_rango_4_fila = rowSums(across(starts_with("range_4_")), na.rm = TRUE)
+  ) %>%
+  # Agrupar y sumar por encuestador
+  group_by(username) %>%
+  summarise(
+    total_rango_1 = sum(total_rango_1_fila, na.rm = TRUE),
+    total_rango_4 = sum(total_rango_4_fila, na.rm = TRUE),
+    total_encuestas = n(),
+    total_rango_1_prop = total_rango_1/total_encuestas,
+    total_rango_4_prop = total_rango_4/total_encuestas
+  )%>%
+  ungroup()%>%
+  mutate(flag_rango_1 = if_else(abs((total_rango_1_prop - mean(total_rango_1_prop,na.rm=T))/sd(total_rango_1_prop,na.rm=T)) > 2,1,0),
+         flag_rango_4 = if_else(abs((total_rango_4_prop - mean(total_rango_4_prop,na.rm=T))/sd(total_rango_4_prop,na.rm=T)) > 2,1,0)
+  )
+
+### Alertas niños nominación
+
+vars_nomi <- c(paste0("friend_",c(1:3),"_select"),paste0("emotional_",c(1:3),"_select"),
+               paste0("academic_",c(1:3),"_select"))
+
+
+alertas_nomi <- alertas %>%
+  transmute(encuestador = username,across(all_of(vars_nomi),~if_else(. == 99,1,0),.names="flag_nomi_{.col}"))%>%
+  mutate(total_friends = rowSums(across(starts_with("flag_nomi_friend")),na.rm=T),
+         total_academic = rowSums(across(starts_with("flag_nomi_academic")),na.rm=T),
+         total_emotional = rowSums(across(starts_with("flag_nomi_emotional")),na.rm=T),
+         flag_skip_friends = if_else((flag_nomi_friend_1_select == 1 | flag_nomi_friend_2_select == 1) & 
+                                       (flag_nomi_friend_2_select == 0 | flag_nomi_friend_3_select == 0 ),1,0 ),
+         flag_skip_academics = if_else((flag_nomi_academic_1_select == 1 | flag_nomi_academic_2_select == 1) & 
+                                         (flag_nomi_academic_2_select == 0 | flag_nomi_academic_3_select == 0 ),1,0 ),
+         flag_skip_emotionals = if_else((flag_nomi_emotional_1_select == 1 | flag_nomi_emotional_2_select == 1) & 
+                                          (flag_nomi_emotional_2_select == 0 | flag_nomi_emotional_3_select == 0 ),1,0 )
+  )%>%
+  group_by(encuestador)%>%
+  summarise(encuestas = n(),
+            missing_friend = sum(total_friends,na.rm = T)/encuestas,
+            missing_academic = sum(total_academic,na.rm = T)/encuestas,
+            missing_emotional = sum(total_emotional,na.rm = T)/encuestas,
+            total_skip_friends = sum(flag_skip_friends, na.rm = T),
+            total_skip_academic = sum(flag_skip_academics,na.rm=T),
+            total_skip_emotional = sum(flag_skip_emotionals,na.rm=T))%>%
+  summarise(encuestador = encuestador,
+            flag_missing_friend = if_else((missing_friend - median(missing_friend,na.rm=T))/sd(missing_friend) >= 2,1,0),
+            flag_missing_emotional = if_else((missing_emotional - median(missing_emotional,na.rm=T))/sd(missing_emotional) >= 2,1,0),
+            flag_missing_academic = if_else((missing_academic - median(missing_academic,na.rm=T))/sd(missing_academic) >= 2,1,0),
+            flag_skip_friend = if_else(total_skip_friends > 0,1,0),
+            flag_skip_academics = if_else(total_skip_academic > 0,1,0),
+            flag_skip_emotionals = if_else(total_skip_emotional > 0,1,0)
+  )
+
+
+alertas_encuestadores = alertas_nomi %>%
+  left_join(alertas_rango %>% select(username,flag_rango_1,flag_rango_4), by = c("encuestador" = "username"))
+
+
 # Confirmación de finalización
 message("Alertas creadas exitosamente.")
 
