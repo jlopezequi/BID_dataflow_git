@@ -172,7 +172,7 @@ df <- df %>%
 # Corregir erro survey cto
 
 df <- df %>%
-  mutate(school_str = if_else(student_id_final == "7ONB","COLEGIO GABRIEL BETANCOURT MEJIA (IED)",school_str))
+  mutate(colegio_str = if_else(student_id_final == "7ONB","COLEGIO GABRIEL BETANCOURT MEJIA (IED)",colegio_str))
          
 
 # Guardado en Diferentes Formato ---------------------------------------------------------------
