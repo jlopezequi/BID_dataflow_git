@@ -420,7 +420,7 @@ alertas <- alertas %>%
     school_final %in% colegios_tratamiento  ~ "Tratamiento",
     school_final %in% colegios_control  ~ "Control",
     TRUE ~ NA_character_))
-    
+
 ### Labels para demográficas ___________________________________________________
 
 # Género
