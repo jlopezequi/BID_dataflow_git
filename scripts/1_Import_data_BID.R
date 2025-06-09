@@ -169,6 +169,12 @@ df <- df %>%
     name_final = if_else(str_squish(name_final) == "", NA_character_, name_final)
   )
 
+# Corregir erro survey cto
+
+df <- df %>%
+  mutate(school_str = if_else(student_id_final == "7ONB","COLEGIO GABRIEL BETANCOURT MEJIA (IED)",school_str))
+         
+
 # Guardado en Diferentes Formato ---------------------------------------------------------------
 dir.create("data/raw", recursive = TRUE, showWarnings = FALSE)
 # Asegurarse de que los nombres de columnas sean válidos
