@@ -541,6 +541,31 @@ alertas_nomi <- alertas %>%
 alertas_encuestadores = alertas_nomi %>%
   left_join(alertas_rango %>% select(username,flag_rango_1,flag_rango_4), by = c("encuestador" = "username"))
 
+## Alertas niños bullying
+
+
+vars_bullying <- c(
+  "mates_scare_you",
+  "mates_fun_you",
+  "mates_hit_you",
+  "mates_out_scare_you",
+  "mates_out_fun_you",
+  "mates_out_hit_you"
+)
+
+
+alertas <- alertas %>%
+  mutate(across(all_of(vars_bullying),~case_when(.x == "1" ~ "Ninguno",
+                                                 .x == "2" ~ "Uno",
+                                                 .x == "3" ~ "Dos",
+                                                 .x == "4" ~ "Tres",
+                                                 .x == "5" ~ "Más de tres"), .names = "{.col}_str")) %>%
+  mutate(
+    flag_bullying = if_else(
+      rowSums(across(all_of(vars_bullying), ~ as.numeric(.x) > 1), na.rm = TRUE) > 0,
+      1, 0
+    )
+  )
 
 # Confirmación de finalización
 message("Alertas creadas exitosamente.")
