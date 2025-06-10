@@ -570,18 +570,36 @@ alertas <- alertas %>%
 
 ## Seguimiento colegios
 
-seguimiento_colegios <- alertas %>%
-  mutate(en_lista =  student_id_yesno == "1" & assent == "1",
-         sin_lista = student_id_yesno == "2" & assent == "1",
-         colegio_final = coalesce(colegio_str,colegio_pull))%>%
-  group_by(colegio_final)%>%
-  summarise(total_encuestas = n(),
-            Rechazos = sum(flag_rejected),
-            en_lista = sum(en_lista),
-            sin_lista = sum(sin_lista),
-            alertas = sum(Alertas),
-            exitos = sum(Exitos),
-            tratamiento = first(tratamiento))
+# Separar los que tienen y no tienen ID
+con_id <- alertas %>%
+  filter(!is.na(student_id_final)) %>%
+  distinct(student_id, .keep_all = TRUE)
+
+sin_id <- alertas %>%
+  filter(is.na(student_id_final))
+
+# Unirlos nuevamente
+alertas_sin_duplicados <- bind_rows(con_id, sin_id)
+
+# Luego aplicar el resumen por colegio
+seguimiento_colegios <- alertas_sin_duplicados %>%
+  mutate(
+    en_lista = student_id_yesno == "1" & assent == "1",
+    sin_lista = student_id_yesno == "2" & assent == "1",
+    colegio_final = coalesce(colegio_str, colegio_pull)
+  ) %>%
+  group_by(colegio_final) %>%
+  summarise(
+    total_encuestas = n(),
+    Rechazos = sum(flag_rejected, na.rm = TRUE),
+    en_lista = sum(en_lista, na.rm = TRUE),
+    sin_lista = sum(sin_lista, na.rm = TRUE),
+    alertas = sum(Alertas, na.rm = TRUE),
+    exitos = sum(Exitos, na.rm = TRUE),
+    tratamiento = first(tratamiento)
+  )
+
+
 
 # Confirmación de finalización
 message("Alertas creadas exitosamente.")
