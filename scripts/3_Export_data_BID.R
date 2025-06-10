@@ -59,7 +59,13 @@ tryCatch({
   stop("Error al exportar datos de alertas: ", e)
 })
 
-
+message("Exportando alertas encuestadores...")
+tryCatch({
+  sheet_write(seguimiento_colegios, ss = sheet_alertas, sheet = "encuestas_por_colegio")
+  message("Datos exportados correctamente.")
+}, error = function(e) {
+  stop("Error al exportar datos de alertas: ", e)
+})
 
 
 

@@ -567,6 +567,22 @@ alertas <- alertas %>%
     )
   )
 
+
+## Seguimiento colegios
+
+seguimiento_colegios <- alertas %>%
+  mutate(en_lista =  student_id_yesno == "1" & assent == "1",
+         sin_lista = student_id_yesno == "2" & assent == "1",
+         colegio_final = coalesce(colegio_str,colegio_pull))%>%
+  group_by(colegio_final)%>%
+  summarise(total_encuestas = n(),
+            Rechazos = sum(flag_rejected),
+            en_lista = sum(en_lista),
+            sin_lista = sum(sin_lista),
+            alertas = sum(Alertas),
+            exitos = sum(Exitos),
+            tratamiento = first(tratamiento))
+
 # Confirmación de finalización
 message("Alertas creadas exitosamente.")
 
