@@ -507,6 +507,22 @@ alertas_rango <- alertas %>%
 vars_nomi <- c(paste0("friend_",c(1:3),"_select"),paste0("emotional_",c(1:3),"_select"),
                paste0("academic_",c(1:3),"_select"))
 
+alertas <- alertas %>%
+  mutate(across(all_of(vars_nomi),~if_else(. == 99,1,0),.names="flag_nomi_{.col}"))%>%
+  mutate(total_friends = rowSums(across(starts_with("flag_nomi_friend")),na.rm=T),
+         total_academic = rowSums(across(starts_with("flag_nomi_academic")),na.rm=T),
+         total_emotional = rowSums(across(starts_with("flag_nomi_emotional")),na.rm=T),
+         flag_skip_friends = if_else((flag_nomi_friend_1_select == 1 | flag_nomi_friend_2_select == 1) & 
+                                       (flag_nomi_friend_2_select == 0 | flag_nomi_friend_3_select == 0 ),1,0 ),
+         flag_skip_academics = if_else((flag_nomi_academic_1_select == 1 | flag_nomi_academic_2_select == 1) & 
+                                         (flag_nomi_academic_2_select == 0 | flag_nomi_academic_3_select == 0 ),1,0 ),
+         flag_skip_emotionals = if_else((flag_nomi_emotional_1_select == 1 | flag_nomi_emotional_2_select == 1) & 
+                                          (flag_nomi_emotional_2_select == 0 | flag_nomi_emotional_3_select == 0 ),1,0 ),
+         flag_minus_3_friends = if_else(total_friends != 0,1,0),
+         flag_minus_3_academic = if_else(total_academic != 0 ,1,0),
+         flag_minus_3_emotional = if_else(total_emotional != 0,1,0))
+
+
 
 alertas_nomi <- alertas %>%
   transmute(encuestador = username,across(all_of(vars_nomi),~if_else(. == 99,1,0),.names="flag_nomi_{.col}"))%>%
