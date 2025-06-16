@@ -7,9 +7,49 @@ df <- df %>%
 
 #### Alertas ####
 
+alertas_assent <- df %>%
+  filter(assent == "1")
+
+alertas_rechazo <- df %>%
+  filter(assent == "2") %>%
+  mutate(
+    # Extraer UUID corto
+    student_id_uuid = substr(KEY, 6, 10),
+    
+    # Priorizar student_id, si no usar UUID corto
+    student_id_final = coalesce(student_id, student_id_uuid),
+    
+    # Convertir endtime a fecha-hora
+    endtime_parsed = mdy_hms(endtime),
+    
+    # Consolidar info de colegio, sede, curso, jornada
+    school_final = coalesce(colegio_pull_id, student_school_reject),
+    sede_final = coalesce(sede_pull_id, student_sede_reject),
+    curso_final = coalesce(curso_pull, student_fifth_l_reject),
+    jornada_final = coalesce(jornada_pull, student_shift_reject),
+    colegio_str = coalesce(colegio_pull, colegio_str_reject),
+    sede_str = coalesce(sede_pull,sede_str_reject),
+    
+    # Construir código compuesto
+    codigo_compuesto = paste(school_final, sede_final, curso_final, jornada_final, sep = "_")
+  ) %>%
+  
+  # Eliminar estudiantes ya procesados
+  filter(!student_id_final %in% alertas_assent$student_id) %>%
+  
+
+  # Eliminar duplicados exactos en código compuesto + nombre
+  group_by(codigo_compuesto, name_final) %>%
+  slice_max(order_by = endtime_parsed, n = 1, with_ties = FALSE) %>%
+  ungroup() %>%
+  
+  select(-endtime_parsed)
+
+alertas <- bind_rows(alertas_assent,alertas_rechazo)
+
 # Crear duración
 
-alertas <- df %>% 
+alertas <- alertas %>% 
   mutate(duration_minutes = round((as.numeric(duration)/60),2))
 
 # Flag duración
@@ -351,7 +391,11 @@ alertas <- alertas %>%
 
 alertas <- alertas %>%
   mutate(
-    flag_rejected = if_else(as.numeric(assent) == 2, 1, 0),
+    flag_rejected = if_else(
+      as.numeric(assent) == 2 & (is.na(rechazo) | rechazo %in% c("3","4")),1,0),
+    flag_ausente = if_else(rechazo == "1",1,0,missing = 0),
+    flag_retirado = if_else(rechazo == "2",1,0,missing = 0),
+    flag_limitacion = if_else(rechazo == "5",1,0,missing = 0),
     flag_saltos = if_else(total_saltos > 0, 1, 0),
     flag_duplicated = if_else(duplicado == 1, 1, 0),
     flag_missing = if_else(total_missing > 0, 1, 0),
@@ -361,6 +405,15 @@ alertas <- alertas %>%
 
 
 ### Crear alertas LOOKER
+
+alertas <- alertas %>%
+  mutate(rechazo_str = case_when(
+    rechazo == "1" ~ "Ausente",
+    rechazo == "2" ~ "Retirado",
+    rechazo == "3" ~ "Estudiante no desea participar",
+    rechazo == "4" ~ "Padres no dieron consentimiento",
+    rechazo == "5" ~ "Limitación para participar"
+  ))
 
 
 alertas <- alertas %>%
@@ -588,11 +641,11 @@ alertas <- alertas %>%
 
 # Separar los que tienen y no tienen ID
 con_id <- alertas %>%
-  filter(!is.na(student_id_final)) %>%
+  filter(!is.na(student_id)) %>%
   distinct(student_id, .keep_all = TRUE)
 
 sin_id <- alertas %>%
-  filter(is.na(student_id_final))
+  filter(is.na(student_id))
 
 # Unirlos nuevamente
 alertas_sin_duplicados <- bind_rows(con_id, sin_id)

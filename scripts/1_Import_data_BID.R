@@ -143,7 +143,7 @@ df <- df %>%
     
     # Limpiar espacios finales
     nombre_concatenado = str_squish(nombre_concatenado),
-    
+  
     # Consolidar variables de juegos
     games_1_1 = coalesce(games_1_1_1, games_1_1_2),
     games_1_2 = coalesce(games_1_2_1, games_1_2_2),
@@ -162,10 +162,39 @@ df <- df %>%
     gender_final = case_when(
       gender_final == "F" ~ "2",
       gender_final == "M" ~ "1",
-      TRUE ~ gender_final),
-    
+      TRUE ~ gender_final)) %>%
+      mutate(
+        # Reemplazar strings vacíos en columnas específicas de nombres "reject" por NA
+        across(all_of(c("student_name1_reject", "student_name2_reject", 
+                        "student_name3_reject", "student_name4_reject")), 
+               ~if_else(str_squish(.) == "", NA_character_, .)),
+        
+        # Limpiar nombres
+        name1_reject = na_if(str_squish(student_name1_reject), ""),
+        name2_reject = na_if(str_squish(student_name2_reject), ""),
+        name3_reject = na_if(str_squish(student_name3_reject), ""),
+        name4_reject = na_if(str_squish(student_name4_reject), ""),
+        
+        # Convertir "9999" en NA explícitamente
+        name2_reject = if_else(name2_reject == "9999", NA_character_, name2_reject),
+        name4_reject = if_else(name4_reject == "9999", NA_character_, name4_reject),
+        
+        # Construcción condicional del nombre completo
+        nombre_concatenado_reject = case_when(
+          is.na(name2_reject) & !is.na(name3_reject) & !is.na(name4_reject) ~ str_c(name1_reject, name3_reject, name4_reject, sep = " "),
+          is.na(name2_reject) & !is.na(name3_reject) & is.na(name4_reject) ~ str_c(name1_reject, name3_reject, sep = " "),
+          is.na(name2_reject) & is.na(name3_reject) & !is.na(name4_reject) ~ str_c(name1_reject, name4_reject, sep = " "),
+          is.na(name2_reject) & is.na(name3_reject) & is.na(name4_reject) ~ name1_reject,
+          !is.na(name2_reject) & !is.na(name3_reject) & is.na(name4_reject) ~ str_c(name1_reject, name2_reject, name3_reject, sep = " "),
+          !is.na(name2_reject) & is.na(name3_reject) & !is.na(name4_reject) ~ str_c(name1_reject, name2_reject, name4_reject, sep = " "),
+          !is.na(name2_reject) & is.na(name3_reject) & is.na(name4_reject) ~ str_c(name1_reject, name2_reject, sep = " "),
+          TRUE ~ str_c(name1_reject, name2_reject, name3_reject, name4_reject, sep = " ")
+        ),
+        
+        # Limpiar espacios finales
+        nombre_concatenado_reject = str_squish(nombre_concatenado_reject),
     # Nombre final priorizando nombre_pull sobre el concatenado
-    name_final = str_to_upper(coalesce(nombre_pull, nombre_concatenado)),
+    name_final = str_to_upper(coalesce(nombre_pull, nombre_concatenado, nombre_concatenado_reject)),
     name_final = if_else(str_squish(name_final) == "", NA_character_, name_final)
   )
 
