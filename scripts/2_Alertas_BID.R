@@ -411,7 +411,7 @@ alertas <- alertas %>%
     rechazo == "1" ~ "Ausente",
     rechazo == "2" ~ "Retirado",
     rechazo == "3" ~ "Estudiante no desea participar",
-    rechazo == "4" | is.na(rechazo) ~ "Padres no dieron consentimiento",
+    rechazo == "4" | (is.na(rechazo) & assent == "2") ~ "Padres no dieron consentimiento",
     rechazo == "5" ~ "Limitación para participar"
   ))
 
