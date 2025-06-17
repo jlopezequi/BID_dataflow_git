@@ -67,6 +67,22 @@ tryCatch({
   stop("Error al exportar datos de alertas: ", e)
 })
 
+Sys.sleep(200)
+
+message("Exportando resultados de juegos...")
+tryCatch({
+  sheet_write(juego_clean, ss = sheet_alertas, sheet = "puntajes_juegos")
+  message("Datos exportados correctamente.")
+}, error = function(e) {
+  stop("Error al exportar datos de alertas: ", e)
+})
+
+
+
+
+
+
+
 
 
 

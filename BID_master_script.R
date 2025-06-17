@@ -89,7 +89,7 @@ load_script <- function(script_name) {
 load_script("1_Import_data_BID.R")   # Importar datos desde survey
 load_script("2_Alertas_BID.R")           # Crear alertas
 load_script("3_Export_data_BID.R")  # Exportar los datos           
-
+load_script("Procesamiento_juegos.R")
 # Confirmación de finalización
 message("Pipeline completado exitosamente.")
 
