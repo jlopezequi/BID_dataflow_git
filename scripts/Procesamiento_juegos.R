@@ -88,6 +88,6 @@ for (i in seq_len(nrow(resultados_juego))) {
 ### Exportar_resultado
 
 juego_clean <- resultados_juego %>%
-  select(encuestador = username , colegio = colegio_str, curso = curso_final, nombre_estudiante = name_final, puntaje = resultado_final)%>%
+  select(encuestador = username , colegio = colegio_str, sede = sede_final, curso = curso_final, jornada = jornada_final, nombre_estudiante = name_final, puntaje = resultado_final)%>%
   mutate(puntaje = if_else(puntaje == 0,1,puntaje))%>%
   arrange(desc(puntaje))
