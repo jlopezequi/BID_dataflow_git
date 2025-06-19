@@ -661,12 +661,17 @@ seguimiento_colegios <- alertas_sin_duplicados %>%
   summarise(
     total_encuestas = n(),
     Rechazos = sum(flag_rejected, na.rm = TRUE),
+    Ausentes = sum(flag_ausente,na.rm=TRUE),
+    Retirado = sum(flag_retirado, na.rm=TRUE),
+    Limitacion = sum(flag_limitacion, na.rm = TRUE),
     en_lista = sum(en_lista, na.rm = TRUE),
     sin_lista = sum(sin_lista, na.rm = TRUE),
     alertas = sum(Alertas, na.rm = TRUE),
     exitos = sum(Exitos, na.rm = TRUE),
     tratamiento = first(tratamiento)
-  )
+  )%>%
+  filter(!is.na(colegio_final))
+  
 
 
 
