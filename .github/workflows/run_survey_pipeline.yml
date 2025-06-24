@@ -1,9 +1,9 @@
 name: Run Survey Data Pipeline
 
-on:
-  schedule:
-    - cron: "0 */2 * * *"  # Cada 2 horas en punto (por ejemplo, 00:00, 02:00, 04:00, ...)
-  workflow_dispatch:
+#on:
+#  schedule:
+#    - cron: "0 */2 * * *"  # Cada 2 horas en punto (por ejemplo, 00:00, 02:00, 04:00, ...)
+#  workflow_dispatch:
 
 jobs:
   run-scripts:
