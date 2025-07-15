@@ -126,8 +126,8 @@ df <- df %>%
     name4 = na_if(str_squish(student_name4), ""),
     
     # Convertir "9999" en NA explícitamente
-    name2 = if_else(name2 == "9999", NA_character_, name2),
-    name4 = if_else(name4 == "9999", NA_character_, name4),
+    name2 = if_else(name2 == "9999" | name2 %in% c("NO TIENE","No Tiene","NO","no tiene"), NA_character_, name2),
+    name4 = if_else(name4 == "9999" | name4 %in% c("NO TIENE","No Tiene","NO","no tiene"), NA_character_, name4),
     
     # Construcción condicional del nombre completo
     nombre_concatenado = case_when(

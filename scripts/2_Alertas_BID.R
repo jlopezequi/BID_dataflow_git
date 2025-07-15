@@ -46,7 +46,7 @@ alertas_rechazo <- df %>%
   select(-endtime_parsed)
 
 alertas <- bind_rows(alertas_assent,alertas_rechazo)
-
+df_procesado <- alertas 
 # Crear duración
 
 alertas <- alertas %>% 
